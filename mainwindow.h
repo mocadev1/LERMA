@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QMessageBox>
 #include <vector>
+#include <regex>
 #include "User.h"
 
 using namespace std;

@@ -55,7 +55,7 @@ void MainWindow::validateUser()
 
     if(it == users.end())
     {
-        message.setText("Invalida Credentials");
+        message.setText("Invalid Credentials");
         message.setIcon(QMessageBox::Warning);
         message.exec();
     }
@@ -101,15 +101,29 @@ void MainWindow::on_signInPB_clicked()
 {
     QMessageBox message;
     User u;
+    // The last part of the regex ("?:\\.") is a subpattern
+    regex emailPatron("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)+$");
 
     u.setUsername(ui->newUserLE->text());
     u.setEmail(ui->emailLE->text());
-    u.setPassword(ui->newPasswordLE->text());
 
-    users.push_back(u);
 
-    message.setText("New user created");
-    message.exec();
+    if(regex_match(u.getEmail().toStdString(), emailPatron))
+    {
+        u.setPassword(ui->newPasswordLE->text());
+
+        users.push_back(u);
+
+        message.setText("New user created");
+        message.exec();
+    }
+    else
+    {
+        message.setText("Invalid email, please try with a real");
+        message.exec();
+    }
+
+
 
     ui->newUserLE->clear();
     ui->emailLE->clear();
