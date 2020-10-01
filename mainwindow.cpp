@@ -6,10 +6,23 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    //QRegExp regexp();
+    //QValidator* validator = new QRegExpValidator(regex, this); /// This is the "parent" of this thing
+    //ui->emailLE->setValidator(validator);
+
+    openFileAction = new QAction("&Open Database",  this);
+    /* In the UI(front) will emitting a signal and in the back will be a method
+     * will be "listening" to do somenthing.
+     *
+     * connect(who'sEmtting, signalKind, who'sListening, whatsGonnaDo);
+    */
+    connect(openFileAction, SIGNAL(triggered()), this, SLOT(openFile()));
+    ui->menubar->addMenu("&File")->addAction(openFileAction);
 }
 
 MainWindow::~MainWindow()
 {
+    saveDB();
     delete ui;
 }
 
@@ -67,6 +80,45 @@ void MainWindow::validateUser()
     }
 }
 
+void MainWindow::saveDB()
+{
+    QJsonObject jsonObj;
+    QJsonDocument jsonDoc;
+
+    jsonObj["users"] = dbArray;
+    jsonDoc = QJsonDocument(jsonObj);
+
+    dbFile.open(QIODevice::WriteOnly);
+    dbFile.write(jsonDoc.toJson());
+    dbFile.close();
+
+}
+
+void MainWindow::loadDB()
+{
+    QJsonObject jsonObj;
+    QJsonDocument jsonDoc;
+    QByteArray data;
+
+    dbFile.open(QIODevice::ReadOnly);
+    data = dbFile.readAll();
+    dbFile.close();
+
+    jsonDoc = QJsonDocument::fromJson(data);
+    jsonObj = jsonDoc.object();
+    dbArray = jsonObj["users"].toArray();
+
+    for (int i(0); i < dbArray.size(); ++i)
+    {
+        User u;
+        QJsonObject obj = dbArray[i].toObject();
+        u.setUsername(obj["name"].toString());
+        u.setEmail(obj["email"].toString());
+        u.setPassword(obj["password"].toString());
+        users.push_back(u);
+    }
+}
+
 void MainWindow::on_usernameLE_textChanged(const QString &arg1)
 {
     Q_UNUSED(arg1);
@@ -99,6 +151,7 @@ void MainWindow::on_newPasswordLE_textChanged(const QString &arg1)
 
 void MainWindow::on_signInPB_clicked()
 {
+    QJsonObject jsonObj;
     QMessageBox message;
     User u;
     // The last part of the regex ("?:\\.") is a subpattern
@@ -106,28 +159,31 @@ void MainWindow::on_signInPB_clicked()
 
     u.setUsername(ui->newUserLE->text());
     u.setEmail(ui->emailLE->text());
+    u.setPassword(ui->newPasswordLE->text());
 
 
     if(regex_match(u.getEmail().toStdString(), emailPatron))
     {
-        u.setPassword(ui->newPasswordLE->text());
-
         users.push_back(u);
 
         message.setText("New user created");
-        message.exec();
     }
     else
     {
-        message.setText("Invalid email, please try with a real");
-        message.exec();
+        message.setText("Invalid email, please try a real one");
+        message.setIcon(QMessageBox::Warning);
     }
 
-
+    message.exec();
 
     ui->newUserLE->clear();
     ui->emailLE->clear();
     ui->newPasswordLE->clear();
+
+    jsonObj["name"] = u.getUsername();
+    jsonObj["email"] = u.getEmail();
+    jsonObj["password"] = u.getPassword();
+    dbArray.append(jsonObj);
 }
 
 void MainWindow::on_loginPB_clicked()
@@ -135,4 +191,20 @@ void MainWindow::on_loginPB_clicked()
     validateUser();
     ui->usernameLE->clear();
     ui->passwordLE->clear();
+}
+
+void MainWindow::openFile()
+{
+    QString name;
+    name = QFileDialog::getOpenFileName(this,
+                                        "Select Database",
+                                        "",
+                                        "JSON files (*.json)");
+    if(name.length() > 0)
+    {
+        dbFile.setFileName(name);
+        ui->loginGB->setEnabled(true);
+        ui->signInGB->setEnabled(true);
+        loadDB();
+    }
 }

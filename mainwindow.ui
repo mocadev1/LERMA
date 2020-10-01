@@ -21,9 +21,12 @@
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="0" column="0">
          <widget class="QGroupBox" name="loginGB">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="maximumSize">
            <size>
-            <width>200</width>
+            <width>250</width>
             <height>16777215</height>
            </size>
           </property>
@@ -34,10 +37,13 @@
            <set>Qt::AlignCenter</set>
           </property>
           <layout class="QGridLayout" name="gridLayout_3">
-           <item row="0" column="0">
-            <widget class="QLineEdit" name="usernameLE">
-             <property name="placeholderText">
-              <string>User</string>
+           <item row="2" column="0">
+            <widget class="QPushButton" name="loginPB">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Login</string>
              </property>
             </widget>
            </item>
@@ -51,13 +57,10 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="0">
-            <widget class="QPushButton" name="loginPB">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>Login</string>
+           <item row="0" column="0">
+            <widget class="QLineEdit" name="usernameLE">
+             <property name="placeholderText">
+              <string>User</string>
              </property>
             </widget>
            </item>
@@ -66,11 +69,17 @@
         </item>
         <item row="1" column="0">
          <widget class="QGroupBox" name="signInGB">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="maximumSize">
            <size>
-            <width>200</width>
+            <width>250</width>
             <height>16777215</height>
            </size>
+          </property>
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
           </property>
           <property name="title">
            <string>Sign In</string>
@@ -89,7 +98,7 @@
            <item row="1" column="0">
             <widget class="QLineEdit" name="emailLE">
              <property name="placeholderText">
-              <string>email</string>
+              <string>email: email@example.com</string>
              </property>
             </widget>
            </item>
@@ -135,6 +144,15 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <tabstops>
+  <tabstop>usernameLE</tabstop>
+  <tabstop>passwordLE</tabstop>
+  <tabstop>loginPB</tabstop>
+  <tabstop>newUserLE</tabstop>
+  <tabstop>emailLE</tabstop>
+  <tabstop>newPasswordLE</tabstop>
+  <tabstop>signInPB</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
