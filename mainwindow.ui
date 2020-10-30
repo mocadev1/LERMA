@@ -127,7 +127,66 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="page_2"/>
+      <widget class="QWidget" name="page_2">
+       <layout class="QGridLayout" name="gridLayout_5">
+        <item row="0" column="0">
+         <widget class="QComboBox" name="categoriesCB">
+          <item>
+           <property name="text">
+            <string>All Departments</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Food &amp; Drinks</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Books</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Electronics</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Home &amp; Kitchen</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Sports &amp; Outdoors</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QScrollArea" name="productsSA">
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="scrollAreaWidgetContents">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>762</width>
+             <height>487</height>
+            </rect>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_8">
+            <item row="0" column="0">
+             <layout class="QGridLayout" name="productsGrid"/>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>

@@ -74,18 +74,20 @@ void MainWindow::validateUser()
     }
     else
     {
+        MainWindow::showMaximized();
         message.setText("Welcome to LERMA " + user);
         ui->viewSW->setCurrentIndex(LERMA_INTERFACE);
         message.exec();
     }
+
 }
 
 void MainWindow::saveDB()
 {
     QJsonObject jsonObj;
     QJsonDocument jsonDoc;
-
-    jsonObj["users"] = dbArray;
+    jsonObj["products"] = productsArray;
+    jsonObj["users"] = usersArray; // Creates an JSON object that store a JSON array
     jsonDoc = QJsonDocument(jsonObj);
 
     dbFile.open(QIODevice::WriteOnly);
@@ -106,17 +108,76 @@ void MainWindow::loadDB()
 
     jsonDoc = QJsonDocument::fromJson(data);
     jsonObj = jsonDoc.object();
-    dbArray = jsonObj["users"].toArray();
 
-    for (int i(0); i < dbArray.size(); ++i)
+    usersArray = jsonObj["users"].toArray();
+
+    for (int i(0); i < usersArray.size(); ++i)
     {
         User u;
-        QJsonObject obj = dbArray[i].toObject();
+        QJsonObject obj = usersArray[i].toObject();
         u.setUsername(obj["name"].toString());
         u.setEmail(obj["email"].toString());
         u.setPassword(obj["password"].toString());
         users.push_back(u);
     }
+
+    productsArray = jsonObj["products"].toArray();
+    ProductWidget* pw;
+
+    for (int i(0); i < productsArray.size(); ++i)
+    {
+
+        QJsonObject obj = productsArray[i].toObject();
+        pw = new ProductWidget(obj["id"].toString(),
+                              obj["name"].toString(),
+                              obj["price"].toDouble(),
+                              nullptr);
+        products.push_back(pw);
+    }
+
+    loadProductsWidgets();
+}
+
+void MainWindow::loadProductsWidgets()
+{
+    cleanProductsSA();
+
+    ProductWidget *product;
+    unsigned int productsInDpt = 0;
+
+    for (size_t j(0); j < products.size(); ++j) {
+        if(products[j]->getId().contains(currentDept)){
+            product = new ProductWidget(products.at(j)->getId(),
+                                        products.at(j)->getName(),
+                                        products.at(j)->getPrice(),
+                                        ui->productsSA);
+            ui->productsGrid->addWidget(product, productsInDpt/4, productsInDpt%4);
+            ++productsInDpt;
+        }
+    }
+}
+
+bool MainWindow::findUsrOrMailInVctr()
+{
+    vector<User>::iterator it;
+    QString newUser = ui->newUserLE->text();
+    QString newEmail = ui->emailLE->text();
+    it = find_if(users.begin(), users.end(), [&newUser, &newEmail](User u) -> bool
+    {
+        return u.getUsername() == newUser or u.getEmail() == newEmail;
+    }
+    );
+    return !(it == users.end());
+}
+
+void MainWindow::cleanProductsSA()
+{
+    QLayoutItem* item;
+        while((item = ui->productsGrid->takeAt(0)))
+        {
+            delete item->widget();
+            delete item;
+        }
 }
 
 void MainWindow::on_usernameLE_textChanged(const QString &arg1)
@@ -161,12 +222,21 @@ void MainWindow::on_signInPB_clicked()
     u.setEmail(ui->emailLE->text());
     u.setPassword(ui->newPasswordLE->text());
 
-
     if(regex_match(u.getEmail().toStdString(), emailPatron))
     {
-        users.push_back(u);
+        if(findUsrOrMailInVctr()){
+            message.setText("Either username or email is already being used");
+        }
+        else
+        {
+            users.push_back(u);
+            message.setText("New user created");
 
-        message.setText("New user created");
+            jsonObj["name"] = u.getUsername();
+            jsonObj["email"] = u.getEmail();
+            jsonObj["password"] = u.getPassword();
+            usersArray.append(jsonObj);
+        }
     }
     else
     {
@@ -175,15 +245,9 @@ void MainWindow::on_signInPB_clicked()
     }
 
     message.exec();
-
     ui->newUserLE->clear();
     ui->emailLE->clear();
     ui->newPasswordLE->clear();
-
-    jsonObj["name"] = u.getUsername();
-    jsonObj["email"] = u.getEmail();
-    jsonObj["password"] = u.getPassword();
-    dbArray.append(jsonObj);
 }
 
 void MainWindow::on_loginPB_clicked()
@@ -207,4 +271,37 @@ void MainWindow::openFile()
         ui->signInGB->setEnabled(true);
         loadDB();
     }
+}
+
+void MainWindow::on_categoriesCB_currentIndexChanged(int index)
+{
+    Q_UNUSED(index);
+
+    switch(ui->categoriesCB->currentIndex()){
+    case ALL:
+        currentDept = "";
+        break;
+
+    case FOOD_DRINKS:
+        currentDept = "AB";
+        break;
+
+    case BOOKS:
+        currentDept = "L";
+        break;
+
+    case ELECTRONICS:
+        currentDept = "E";
+        break;
+
+    case HOME_KITCHEN:
+        currentDept = "HC";
+        break;
+
+    case SPORTS_OUTDOORS:
+        currentDept = "D";
+        break;
+    }
+
+    loadProductsWidgets();
 }

@@ -1,11 +1,14 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <iostream>
+
 #include <QMainWindow>
 #include <QMessageBox>
 #include <vector>
 #include <regex>
 #include "User.h"
+#include "productwidget.h"
 
 // #include <QValidator>
 // #include <QRegExpValidator>
@@ -48,21 +51,36 @@ private slots:
 
     void openFile();
 
+    void on_categoriesCB_currentIndexChanged(int index);
+
 private:
     Ui::MainWindow *ui;
 
     vector<User> users;
+    vector<ProductWidget*> products;
     QAction* openFileAction;
     QFile dbFile;
-    QJsonArray dbArray;
+    QJsonArray usersArray;
+    QJsonArray productsArray;
+    QString currentDept;
 
     enum StackW {LOGIN_SIGNIN, LERMA_INTERFACE};
+    enum CategoriesCB {ALL, FOOD_DRINKS, BOOKS,
+                       ELECTRONICS, HOME_KITCHEN,
+                       SPORTS_OUTDOORS};
 
     void enableLoginPB();
     void enableSignInPB();
     void validateUser();
+
     void saveDB();
     void loadDB();
+
+    void loadProductsWidgets();
+
+    bool findUsrOrMailInVctr();
+
+    void cleanProductsSA();
 
 };
 #endif // MAINWINDOW_H
