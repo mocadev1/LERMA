@@ -7,6 +7,7 @@
 #include <QMessageBox>
 #include <vector>
 #include <regex>
+#include <algorithm>
 #include "User.h"
 #include "productwidget.h"
 
@@ -53,21 +54,30 @@ private slots:
 
     void on_categoriesCB_currentIndexChanged(int index);
 
+    void on_sortCB_currentIndexChanged(int index);
+
+    void on_searchLE_textChanged(const QString &arg1);
+
 private:
     Ui::MainWindow *ui;
 
     vector<User> users;
     vector<ProductWidget*> products;
+    vector<ProductWidget*> deptProducts;
+
     QAction* openFileAction;
     QFile dbFile;
     QJsonArray usersArray;
     QJsonArray productsArray;
+
     QString currentDept;
+    QString currentOrder;
 
     enum StackW {LOGIN_SIGNIN, LERMA_INTERFACE};
     enum CategoriesCB {ALL, FOOD_DRINKS, BOOKS,
                        ELECTRONICS, HOME_KITCHEN,
                        SPORTS_OUTDOORS};
+    enum OrderCB {DEFAULT, ASCENDING, DESCENDING};
 
     void enableLoginPB();
     void enableSignInPB();
@@ -76,6 +86,8 @@ private:
     void saveDB();
     void loadDB();
 
+    void fillDeptProducts();
+    void sortDeptProducts();
     void loadProductsWidgets();
 
     bool findUsrOrMailInVctr();

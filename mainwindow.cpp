@@ -135,7 +135,49 @@ void MainWindow::loadDB()
         products.push_back(pw);
     }
 
+    fillDeptProducts();
     loadProductsWidgets();
+}
+
+/* Fills "deptProducts" only with the products that belongs to the
+ * "currentDept" selected in the "categoriesCB"
+ */
+void MainWindow::fillDeptProducts()
+{
+    deptProducts.clear();
+
+    for (size_t j(0); j < products.size(); ++j) {
+        if(products[j]->getId().contains(currentDept)){
+            deptProducts.push_back(products[j]);
+        }
+    }
+
+}
+
+/* Sorts "deptProducts" based on the "currentOrder" selected in "sortCB"
+ */
+void MainWindow::sortDeptProducts()
+{
+    if(currentOrder == "ascending"){
+        sort(deptProducts.begin(), deptProducts.end(),
+             [](const ProductWidget* a, const ProductWidget* b)
+                {
+                    return a->getPrice() < b->getPrice();
+                });
+    }
+    else if( currentOrder == "descending"){
+        sort(deptProducts.begin(), deptProducts.end(),
+             [](const ProductWidget* a, const ProductWidget* b)
+                {
+                    return a->getPrice() > b->getPrice();
+                });
+    }
+    else //default
+        fillDeptProducts();
+
+    for (size_t j(0); j < deptProducts.size(); ++j) {
+        cout  << "ORDEN[" << j << "] " << deptProducts[j]->getName().toStdString() << endl;
+    }
 }
 
 void MainWindow::loadProductsWidgets()
@@ -143,16 +185,18 @@ void MainWindow::loadProductsWidgets()
     cleanProductsSA();
 
     ProductWidget *product;
-    unsigned int productsInDpt = 0;
-
-    for (size_t j(0); j < products.size(); ++j) {
-        if(products[j]->getId().contains(currentDept)){
-            product = new ProductWidget(products.at(j)->getId(),
-                                        products.at(j)->getName(),
-                                        products.at(j)->getPrice(),
+    int matchingProducts(0);
+    for (size_t j(0); j < deptProducts.size(); ++j) {
+        if(deptProducts[j]->getName().toLower().contains(
+                                                ui->searchLE->text().toLower())) // This could be an atribute "searchingFor"
+        {
+            product = new ProductWidget(deptProducts[j]->getId(),
+                                        deptProducts[j]->getName(),
+                                        deptProducts[j]->getPrice(),
                                         ui->productsSA);
-            ui->productsGrid->addWidget(product, productsInDpt/4, productsInDpt%4);
-            ++productsInDpt;
+            ui->productsGrid->addWidget(product,
+                              matchingProducts/4, matchingProducts%4);
+            ++matchingProducts;
         }
     }
 }
@@ -275,33 +319,55 @@ void MainWindow::openFile()
 
 void MainWindow::on_categoriesCB_currentIndexChanged(int index)
 {
-    Q_UNUSED(index);
-
-    switch(ui->categoriesCB->currentIndex()){
+    switch(index){
     case ALL:
         currentDept = "";
         break;
-
     case FOOD_DRINKS:
         currentDept = "AB";
         break;
-
     case BOOKS:
         currentDept = "L";
         break;
-
     case ELECTRONICS:
         currentDept = "E";
         break;
-
     case HOME_KITCHEN:
         currentDept = "HC";
         break;
-
     case SPORTS_OUTDOORS:
         currentDept = "D";
         break;
     }
 
+    ui->sortCB->setCurrentIndex(DEFAULT);
+    fillDeptProducts();
+    ui->searchLE->clear();
+    loadProductsWidgets();
+
+}
+
+void MainWindow::on_sortCB_currentIndexChanged(int index)
+{
+    switch (index) {
+    case DEFAULT:
+        currentOrder = "default";
+        break;
+    case ASCENDING:
+        currentOrder = "ascending";
+        break;
+    case DESCENDING:
+        currentOrder = "descending";
+        break;
+    }
+
+    sortDeptProducts();
+    loadProductsWidgets();
+    cout << "Cambio Sort a [" << index << "]: " << currentOrder.toStdString() << endl;
+}
+
+void MainWindow::on_searchLE_textChanged(const QString &arg1)
+{
+    Q_UNUSED(arg1);
     loadProductsWidgets();
 }
