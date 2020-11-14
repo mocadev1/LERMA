@@ -21,6 +21,8 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 
+#include <QDateTime>
+
 using namespace std;
 
 QT_BEGIN_NAMESPACE
@@ -58,6 +60,8 @@ private slots:
 
     void on_searchLE_textChanged(const QString &arg1);
 
+    void addToCart(QString item, int quantity);
+
 private:
     Ui::MainWindow *ui;
 
@@ -69,9 +73,11 @@ private:
     QFile dbFile;
     QJsonArray usersArray;
     QJsonArray productsArray;
+    QJsonArray cart;
 
     QString currentDept;
     QString currentOrder;
+    size_t currentUserIndex;
 
     enum StackW {LOGIN_SIGNIN, LERMA_INTERFACE};
     enum CategoriesCB {ALL, FOOD_DRINKS, BOOKS,
@@ -89,10 +95,10 @@ private:
     void fillDeptProducts();
     void sortDeptProducts();
     void loadProductsWidgets();
+    void cleanProductsSA();
 
     bool findUsrOrMailInVctr();
 
-    void cleanProductsSA();
-
+    void addPurchaseToHistory();
 };
 #endif // MAINWINDOW_H

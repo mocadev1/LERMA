@@ -11,12 +11,14 @@ MainWindow::MainWindow(QWidget *parent)
     //ui->emailLE->setValidator(validator);
 
     openFileAction = new QAction("&Open Database",  this);
-    /* In the UI(front) will emitting a signal and in the back will be a method
+
+    /* In the UI(front) will be emitting a signal and in the back will be a method
      * will be "listening" to do somenthing.
      *
      * connect(who'sEmtting, signalKind, who'sListening, whatsGonnaDo);
     */
     connect(openFileAction, SIGNAL(triggered()), this, SLOT(openFile()));
+
     ui->menubar->addMenu("&File")->addAction(openFileAction);
 }
 
@@ -59,6 +61,7 @@ void MainWindow::validateUser()
     vector<User>::iterator it;
     QString user = ui->usernameLE->text();
     QString password = ui->passwordLE->text();
+
     // A lambda function that returns true if finds a username within a vector
     it = find_if(users.begin(), users.end(), [&user, &password](User u) -> bool
     {
@@ -74,6 +77,11 @@ void MainWindow::validateUser()
     }
     else
     {
+        /* Obtaining the current User index for later add the "purchase" (cart)
+         * to the purchase history when saving Data Base with saveDB().
+         */
+        currentUserIndex = it - users.begin();
+
         MainWindow::showMaximized();
         message.setText("Welcome to LERMA " + user);
         ui->viewSW->setCurrentIndex(LERMA_INTERFACE);
@@ -82,12 +90,21 @@ void MainWindow::validateUser()
 
 }
 
+/** Creates an JSON object that stores the QJsonArrays for
+ *  products and users as keys, and then the object it is
+ *  written to a document
+ */
 void MainWindow::saveDB()
 {
     QJsonObject jsonObj;
     QJsonDocument jsonDoc;
+
+    if(!cart.isEmpty()){
+        addPurchaseToHistory();
+    }
+
     jsonObj["products"] = productsArray;
-    jsonObj["users"] = usersArray; // Creates an JSON object that store a JSON array
+    jsonObj["users"] = usersArray;
     jsonDoc = QJsonDocument(jsonObj);
 
     dbFile.open(QIODevice::WriteOnly);
@@ -187,15 +204,14 @@ void MainWindow::loadProductsWidgets()
     ProductWidget *product;
     int matchingProducts(0);
     for (size_t j(0); j < deptProducts.size(); ++j) {
-        if(deptProducts[j]->getName().toLower().contains(
-                                                ui->searchLE->text().toLower())) // This could be an atribute "searchingFor"
+        if(deptProducts[j]->getName().toLower().contains(ui->searchLE->text().toLower())) // This could be an atribute "searchingFor"
         {
             product = new ProductWidget(deptProducts[j]->getId(),
                                         deptProducts[j]->getName(),
                                         deptProducts[j]->getPrice(),
                                         ui->productsSA);
-            ui->productsGrid->addWidget(product,
-                              matchingProducts/4, matchingProducts%4);
+            connect(product, SIGNAL(addItem(QString, int)), this, SLOT(addToCart(QString, int)));
+            ui->productsGrid->addWidget(product, matchingProducts/4, matchingProducts%4);
             ++matchingProducts;
         }
     }
@@ -212,6 +228,29 @@ bool MainWindow::findUsrOrMailInVctr()
     }
     );
     return !(it == users.end());
+}
+
+/** Adds the QJsonArray "cart" as an element of the array stored
+ *  by the "purchase" key for user logged in.
+ */
+void MainWindow::addPurchaseToHistory()
+{
+    QJsonObject currentUser = usersArray[currentUserIndex].toObject();
+    QJsonObject todaysCart
+    {
+        {QDateTime::currentDateTime().toString("dd/MM/yy hh:mm:ss"), cart}
+    };
+    QJsonArray purchaseHistory;
+
+    if(currentUser.contains("purchase")){ // If currentUser has bought something before
+        purchaseHistory = currentUser["purchase"].toArray();
+        cout << "\nAdding to the history" << endl;
+    }
+
+    purchaseHistory.append(todaysCart);
+    currentUser["purchase"] = purchaseHistory;
+    usersArray[currentUserIndex] = currentUser;
+
 }
 
 void MainWindow::cleanProductsSA()
@@ -370,4 +409,20 @@ void MainWindow::on_searchLE_textChanged(const QString &arg1)
 {
     Q_UNUSED(arg1);
     loadProductsWidgets();
+}
+
+/** Adds a product to the QJsonArray cart*/
+void MainWindow::addToCart(QString item, int quantity)
+{
+    /* Creates the product that will be added to the cart
+     *  for later save the "cart" to the purchase history key in
+     *  the current user in saveDB().
+     */
+    QJsonObject product
+    {
+        {"id", item},
+        {"units", quantity}
+    };
+
+     cart.append(product);
 }

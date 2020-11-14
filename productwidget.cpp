@@ -63,3 +63,29 @@ void ProductWidget::setPrice(float value)
 {
     price = value;
 }
+
+/**
+ * Enables the addPB in the UI if arg1 > 0
+ * @param arg1
+ */
+void ProductWidget::on_quantitySB_valueChanged(int arg1)
+{
+    if(arg1 > 0)
+    {
+        ui->addPB->setEnabled(true);
+    }
+    else
+    {
+        ui->addPB->setEnabled(false);
+    }
+}
+
+/**
+ * Here the productWidget emits the SIGNAL
+ * that is catched in the MainWindow
+ */
+void ProductWidget::on_addPB_clicked()
+{
+    emit addItem(id, ui->quantitySB->value());
+    ui->quantitySB->setValue(0);
+}

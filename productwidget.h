@@ -33,6 +33,14 @@ private:
     QString id;
     QString name;
     double price;
+
+private slots:
+    void on_quantitySB_valueChanged(int arg1);
+
+    void on_addPB_clicked();
+
+signals:
+    void addItem(QString id, int quantity);
 };
 
 #endif // PRODUCTWIDGET_H
