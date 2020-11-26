@@ -23,6 +23,7 @@ SOURCES += \
 
 HEADERS += \
     User.h \
+    graph.h \
     mainwindow.h \
     productwidget.h
 

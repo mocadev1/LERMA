@@ -154,6 +154,7 @@ void MainWindow::loadDB()
 
     fillDeptProducts();
     loadProductsWidgets();
+    //createGraph();
 }
 
 /* Fills "deptProducts" only with the products that belongs to the
@@ -192,9 +193,9 @@ void MainWindow::sortDeptProducts()
     else //default
         fillDeptProducts();
 
-    for (size_t j(0); j < deptProducts.size(); ++j) {
-        cout  << "ORDEN[" << j << "] " << deptProducts[j]->getName().toStdString() << endl;
-    }
+//    for (size_t j(0); j < deptProducts.size(); ++j) {
+//        cout  << "ORDEN[" << j << "] " << deptProducts[j]->getName().toStdString() << endl;
+//    }
 }
 
 void MainWindow::loadProductsWidgets()
@@ -244,7 +245,7 @@ void MainWindow::addPurchaseToHistory()
 
     if(currentUser.contains("purchase")){ // If currentUser has bought something before
         purchaseHistory = currentUser["purchase"].toArray();
-        cout << "\nAdding to the history" << endl;
+//        cout << "\nAdding to the history" << endl;
     }
 
     purchaseHistory.append(todaysCart);
@@ -252,6 +253,38 @@ void MainWindow::addPurchaseToHistory()
     usersArray[currentUserIndex] = currentUser;
 
 }
+
+//void MainWindow::createGraph()
+//{
+//    for(int i(0); i < usersArray.size(); ++i)
+//    {
+//        QJsonObject user = usersArray[i].toObject();
+
+//        if(user.contains("purchase"))
+//        {
+//            QJsonArray purchaseHistory = user["purchase"].toArray();
+
+//            for(int j(0); j < purchaseHistory.size(); ++j)
+//            {
+//                QJsonArray purchaseItems = purchaseHistory[j].toArray();
+
+//                if(purchaseItems.size() > 1)
+//                {
+//                    string firstItem = purchaseItems[0].toObject()["id"].toString().toStdString();
+
+//                    for(int k(1); k < purchaseItems.size(); ++k)
+//                    {
+//                        string kItem = purchaseItems[k].toObject()["id"].toString().toStdString();
+//                        if(!graph.isEdge(firstItem, kItem))
+//                        {
+//                            graph.createEdge(firstItem, kItem, 0);
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
 
 void MainWindow::cleanProductsSA()
 {
@@ -402,7 +435,7 @@ void MainWindow::on_sortCB_currentIndexChanged(int index)
 
     sortDeptProducts();
     loadProductsWidgets();
-    cout << "Cambio Sort a [" << index << "]: " << currentOrder.toStdString() << endl;
+//    cout << "Cambio Sort a [" << index << "]: " << currentOrder.toStdString() << endl;
 }
 
 void MainWindow::on_searchLE_textChanged(const QString &arg1)
@@ -414,15 +447,24 @@ void MainWindow::on_searchLE_textChanged(const QString &arg1)
 /** Adds a product to the QJsonArray cart*/
 void MainWindow::addToCart(QString item, int quantity)
 {
-    /* Creates the product that will be added to the cart
-     *  for later save the "cart" to the purchase history key in
-     *  the current user in saveDB().
-     */
     QJsonObject product
     {
         {"id", item},
         {"units", quantity}
     };
 
-     cart.append(product);
+    QJsonArray::iterator it = find_if(cart.begin(), cart.end(), [&item](QJsonValueRef p)
+        {
+            cout << "comprando "<< p.toObject()["id"].toString().toStdString() << endl;
+            return item == p.toObject()["id"].toString();
+        });
+
+    if(it != cart.end()){ /// If product is already in cart and just added more units
+        QJsonObject previousItem = it->toObject();
+        previousItem["units"] = previousItem["units"].toInt() + quantity;
+        *it = previousItem;
+    }
+    else{
+        cart.append(product);
+    }
 }

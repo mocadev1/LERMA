@@ -5,23 +5,23 @@
 
 #include <QMainWindow>
 #include <QMessageBox>
-#include <vector>
-#include <regex>
-#include <algorithm>
-#include "User.h"
-#include "productwidget.h"
-
 // #include <QValidator>
 // #include <QRegExpValidator>
-
 #include <QAction>
 #include <QFile> /// Para el uso de la base de datos en formato JSON
 #include <QFileDialog>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
-
 #include <QDateTime>
+
+#include <vector>
+#include <regex>
+#include <algorithm>
+
+#include "User.h"
+#include "productwidget.h"
+#include "graph.h"
 
 using namespace std;
 
@@ -79,6 +79,8 @@ private:
     QString currentOrder;
     size_t currentUserIndex;
 
+    Graph<string> graph;
+
     enum StackW {LOGIN_SIGNIN, LERMA_INTERFACE};
     enum CategoriesCB {ALL, FOOD_DRINKS, BOOKS,
                        ELECTRONICS, HOME_KITCHEN,
@@ -100,5 +102,7 @@ private:
     bool findUsrOrMailInVctr();
 
     void addPurchaseToHistory();
+
+    void createGraph();
 };
 #endif // MAINWINDOW_H

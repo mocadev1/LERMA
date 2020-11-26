@@ -22,11 +22,6 @@ ProductWidget::ProductWidget(QString i, QString n, double p, QWidget *parent) :
     ui->priceLbl->resize(200,200);
     ui->priceLbl->setWordWrap(true);
     ui->priceLbl->setText("$" + QString::number(price));
-
-    cout << "path: " << path.toStdString() + "\n\n";
-    cout << "id: " << i.toStdString() << endl;
-    cout << "name: " << n.toStdString() << endl;
-    cout << "price: " << p << endl;
 }
 
 ProductWidget::~ProductWidget()
