@@ -19,6 +19,8 @@ public:
     void createEdge(const T& origin, const T& destiny, int cost);
     void printData();
     int getCost(const T& origin, const T& destiny);
+    const map<T, int>& getNeighbors(const T& origin);
+    bool contains(const T& origin);
 
 private:
     map<T, map<T, int>> graph;
@@ -49,11 +51,11 @@ void Graph<T>::createEdge(const T& origin, const T& destiny, int cost)
     {
         if (graph.find(origin) != graph.end())
         {
-            destinies = graph[origin]; // Obtaining the existing Edges from a Vertex
+            destinies = graph[origin];
         }
-        destinies[destiny] = cost; // Adding the destiny
+        destinies[destiny] = cost;
 
-        graph[origin] = destinies; // Assigning all the destinies (Edges) to a Vertex
+        graph[origin] = destinies;
     }
     else
     {
@@ -104,4 +106,18 @@ int Graph<T>::getCost(const T& origin, const T& destiny)
         throw invalid_argument("The edge does not exist");
     }
     return graph[origin][destiny];
+}
+
+template<typename T>
+const map<T, int> &Graph<T>::getNeighbors(const T &origin)
+{
+    if (graph.find(origin) == graph.end())
+        throw runtime_error("The origin doesn't exist");
+    return graph[origin];
+}
+
+template<typename T>
+bool Graph<T>::contains(const T &origin)
+{
+    return graph.find(origin) != graph.end();
 }
