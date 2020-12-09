@@ -14,10 +14,12 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QDateTime>
+#include <QRandomGenerator>
 
 #include <vector>
 #include <regex>
 #include <algorithm>
+#include <queue>
 
 #include "User.h"
 #include "productwidget.h"
@@ -81,6 +83,22 @@ private:
 
     Graph<string> graph;
 
+    class myComparison
+    {
+      bool reverse;
+    public:
+      myComparison(const bool& revparam=false)
+        {reverse=revparam;}
+      bool operator() (const pair<string, int>& lhs, const pair<string, int>&rhs) const
+      {
+        if (reverse) return (lhs.second > rhs.second);
+        else return (lhs.second < rhs.second);
+      }
+    };
+
+    priority_queue< pair<string, int>, vector< pair<string, int> >, myComparison> recommendations;
+
+
     enum StackW {LOGIN_SIGNIN, LERMA_INTERFACE};
     enum CategoriesCB {ALL, FOOD_DRINKS, BOOKS,
                        ELECTRONICS, HOME_KITCHEN,
@@ -104,5 +122,10 @@ private:
     void addPurchaseToHistory();
 
     void createGraph();
+
+    void fillRecommendations();
+    void randomRecommendations();
+    void loadRecommendationsWidgets();
+    void cleanRecommendationsSA();
 };
 #endif // MAINWINDOW_H

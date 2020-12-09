@@ -156,6 +156,7 @@ void MainWindow::loadDB()
     loadProductsWidgets();
     createGraph();
     graph.printData();
+    fillRecommendations();
 }
 
 /* Fills "deptProducts" only with the products that belongs to the
@@ -290,10 +291,114 @@ void MainWindow::createGraph()
     }
 }
 
+void MainWindow::fillRecommendations()
+{
+    if(cart.isEmpty()){
+        randomRecommendations();
+    }
+    else{
+
+        vector< pair<string, int> > productsNeighbors;
+
+        for(size_t i(0); i < (size_t)cart.size(); i++){
+            string cartProduct = cart[i].toObject()["id"].toString().toStdString();
+            cout << "Verficando que " << cartProduct << "exista como nodo en el grafo" << endl;
+            if(graph.contains(cartProduct)){ // Verifying that the added product exists as node in the graph
+                map<string, int> crrntPdtNeighborsMap = graph.getNeighbors(cartProduct); // This should not be empty, cause if exists in graph it means it has at least one neighbor
+                /* pasar el mapa a un vector y de ese vector solo añadir a productsNeighbors los que no se encuentren ahí
+                 */
+                productsNeighbors.insert(productsNeighbors.end(), crrntPdtNeighborsMap.begin(), crrntPdtNeighborsMap.end());
+            }
+        }
+
+        recommendations = priority_queue< pair<string, int>, vector< pair<string, int> >, myComparison> (productsNeighbors.begin(), productsNeighbors.end());
+
+
+        cout << "\n\nInicia desencolado cola COPIA: " << endl;
+        priority_queue< pair<string, int>, vector< pair<string, int> >, myComparison> recommendationsCopy = recommendations;
+        while(!recommendationsCopy.empty()){
+                cout << "Pair en el top Copia: " << recommendationsCopy.top().first << " " << recommendationsCopy.top().second << endl;
+                recommendationsCopy.pop();
+        }
+
+        cout << "\n\nTERMINO desencolado cola COPIA: " << endl;
+
+    }
+
+    loadRecommendationsWidgets();
+}
+
+void MainWindow::randomRecommendations()
+{
+    vector<quint32> randomProductIndices;
+    int totalProducts = products.size();
+
+    int i(0);
+    vector<quint32>::iterator it;
+    quint32 randomIndex;
+
+    while(i < 5){
+        randomIndex = QRandomGenerator::global()->bounded(totalProducts);
+
+        cout << "Numero aleatorio: " << randomIndex << endl;
+
+        it = std::find (randomProductIndices.begin(), randomProductIndices.end(), randomIndex); // "std::" cause if not it calls a different Qt "find"
+        if (it == randomProductIndices.end()){
+            randomProductIndices.push_back(randomIndex);
+            cout << "i: " << i << " Y RandomIndex: " << randomProductIndices[i] << endl;
+            cout  << "Recomendando: " << products[randomProductIndices[i]]->getId().toStdString() << endl;
+            pair<string, int> randomProduct(products[randomProductIndices[i]]->getId().toStdString(), randomProductIndices[i]);
+            recommendations.push(randomProduct);
+            i++;
+        }
+
+    }
+}
+
+void MainWindow::loadRecommendationsWidgets()
+{
+    cleanRecommendationsSA();
+    ProductWidget *product;
+    vector<ProductWidget *>::iterator it;
+
+    int i(0);
+    // Tomar en cuenta si es que el tamaño de la cola de prioridad no es mayor a 5
+    while(i < 5){ // while(!recommendations.empty()){
+        cout << "TOP recomendados: " << recommendations.top().first << " " << recommendations.top().second << endl;
+        const string productId = recommendations.top().first;
+        it = find_if(products.begin(), products.end(), [&productId](ProductWidget* p)
+            {
+                return productId == p->getId().toStdString();
+            });
+
+
+        product = new ProductWidget((*it)->getId(),
+                                    (*it)->getName(),
+                                    (*it)->getPrice(),
+                                    ui->recommendationsSA);
+
+        connect(product, SIGNAL(addItem(QString, int)), this, SLOT(addToCart(QString, int)));
+        ui->recommendationsBox->addWidget(product);
+
+        recommendations.pop();
+        i++;
+    }
+}
+
 void MainWindow::cleanProductsSA()
 {
     QLayoutItem* item;
         while((item = ui->productsGrid->takeAt(0)))
+        {
+            delete item->widget();
+            delete item;
+        }
+}
+
+void MainWindow::cleanRecommendationsSA()
+{
+    QLayoutItem* item;
+        while((item = ui->recommendationsBox->takeAt(0)))
         {
             delete item->widget();
             delete item;
@@ -469,4 +574,6 @@ void MainWindow::addToCart(QString item, int quantity)
     else{
         cart.append(product);
     }
+
+    fillRecommendations();
 }
